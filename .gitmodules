@@ -1,0 +1,9 @@
+[submodule "required-libs/hackrf"]
+	path = required-libs/hackrf
+	url = https://github.com/greatscottgadgets/hackrf.git
+[submodule "required-libs/SoapySDR"]
+	path = required-libs/SoapySDR
+	url = https://github.com/pothosware/SoapySDR.git
+[submodule "required-libs/SoapyHackRF"]
+	path = required-libs/SoapyHackRF
+	url = https://github.com/pothosware/SoapyHackRF.git
