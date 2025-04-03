@@ -25,7 +25,7 @@ concept BufferCompatible = std::is_object_v<T> &&
  *  2) Для чтения
  */
 template <BufferCompatible _DT>
-class DoubleBuffer { 
+class double_buffer { 
 public: 
     enum { 
         OP_SUCCESS              =  1, 
@@ -39,62 +39,66 @@ public:
     /**
      * 
      */
-    explicit DoubleBuffer(const size_t capacity, std::unique_ptr<_DT[]> buffer);
+    explicit double_buffer(const size_t capacity, std::unique_ptr<_DT[]> buffer);
     
     /**
      * 
      */
-    ~DoubleBuffer() = default;
+    ~double_buffer() = default;
 
     /**
      * 
      */
-    static std::optional<DoubleBuffer<_DT>> Create(size_t capacity);
+    static std::optional<double_buffer<_DT>> create(size_t capacity);
 
     /**
      * 
      */
-    DoubleBuffer(const DoubleBuffer&) = delete;
-    DoubleBuffer& operator=(const DoubleBuffer&) = delete;
-    DoubleBuffer(DoubleBuffer&&) noexcept = default;
-    DoubleBuffer& operator=(DoubleBuffer&&) noexcept = default;
+    double_buffer(const double_buffer&) = delete;
+    double_buffer& operator=(const double_buffer&) = delete;
+    double_buffer(double_buffer&&) noexcept = default;
+    double_buffer& operator=(double_buffer&&) noexcept = default;
 
     /**
      * 
      */
-    [[nodiscard]] int8_t Push(const _DT& data);  
+    [[nodiscard]] int8_t push(const _DT& data);  
 
     /**
      *  Add RVO?
      */
-    [[nodiscard]] _DT Pull();
+    [[nodiscard]] _DT pull();
     
     
     /**
      * ZeroCopy
      */
-    [[nodiscard]] int8_t DirectPull(_DT* val, size_t size, bool copy);
+    [[nodiscard]] int8_t direct_pull(_DT* val, size_t size, bool copy);
 
     /**
      * ZeroCopy
      */
-    [[nodiscard]] int8_t DirectPush(_DT* val, size_t size);
+    [[nodiscard]] int8_t direct_push(_DT* val, size_t size);
 
     /**
      * 
      */
-    inline size_t AvailableSizeWD();
+    inline size_t available_size_wd();
 
     /**
      * 
      */
-    inline size_t AvailableSizeRD(); 
+    inline size_t available_size_rd(); 
 
     /**
      * 
      */
-    inline float RatioBetween();
-     
+    inline float ratio_between();
+
+    /**
+     * 
+     */
+    inline size_t capacity(); 
 private: 
     /**
      *
@@ -128,4 +132,4 @@ private:
     std::mutex switch_mutex_;
 };
 
-#include "buffer/impl/DoubleBuffer.tpp"
+#include "buffer/impl/double_buffer.tpp"

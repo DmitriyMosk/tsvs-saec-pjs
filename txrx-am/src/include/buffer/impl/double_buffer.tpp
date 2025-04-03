@@ -7,7 +7,7 @@
 
 // Конструктор с проверкой нулевой емкости
 template <BufferCompatible _DT>
-DoubleBuffer<_DT>::DoubleBuffer(const size_t capacity, std::unique_ptr<_DT[]> buffer)
+double_buffer<_DT>::double_buffer(const size_t capacity, std::unique_ptr<_DT[]> buffer)
     : buffer_(std::move(buffer)),
       capacity_(capacity),
       buff_idx_center_(capacity / 2),
@@ -23,16 +23,21 @@ DoubleBuffer<_DT>::DoubleBuffer(const size_t capacity, std::unique_ptr<_DT[]> bu
     }
 }
 
+template <BufferCompatible _DT> 
+size_t double_buffer<_DT>::capacity() { 
+    return capacity_; 
+}
+
 // Фабричный метод с обработкой ошибок выделения памяти
 template <BufferCompatible _DT>
-std::optional<DoubleBuffer<_DT>> DoubleBuffer<_DT>::Create(size_t capacity) {
+std::optional<double_buffer<_DT>> double_buffer<_DT>::create(size_t capacity) {
     try {
         /**
          * Попытка выделить память для буфера
          * В случае неудачи std::make_unique бросит std::bad_alloc
          */
         auto buffer = std::make_unique<_DT[]>(capacity);
-        return std::optional<DoubleBuffer<_DT>>(std::in_place, capacity, std::move(buffer));
+        return std::optional<double_buffer<_DT>>(std::in_place, capacity, std::move(buffer));
     } catch (...) {
         // Возвращаем пустой optional при любой ошибке
         return std::nullopt;
@@ -41,7 +46,7 @@ std::optional<DoubleBuffer<_DT>> DoubleBuffer<_DT>::Create(size_t capacity) {
 
 // Переключение между буферами чтения/записи
 template <BufferCompatible _DT>
-void DoubleBuffer<_DT>::buff_switch() {
+void double_buffer<_DT>::buff_switch() {
     /**
      * 1) [r,r,r,r,r|w,w,w,w,w] 
      * 2) [w,w,w,w,w|r,r,r,r,r]
@@ -57,7 +62,7 @@ void DoubleBuffer<_DT>::buff_switch() {
 
 // Добавление элемента в буфер записи
 template <BufferCompatible _DT>
-[[nodiscard]] int8_t DoubleBuffer<_DT>::Push(const _DT& data) {
+[[nodiscard]] int8_t double_buffer<_DT>::push(const _DT& data) {
     /**
      * Условие заполненности [w]:
      *  (Указатель достиг конца)
@@ -66,12 +71,12 @@ template <BufferCompatible _DT>
      */
     std::lock_guard<std::mutex> lock(write_mutex_);
     
-    if (AvailableSizeWD() == 0) {
+    if (available_size_wd() == 0) {
         const size_t rd_idx = idx_rd_.load(std::memory_order_acquire);
         if (rd_idx == 0) {
             std::lock_guard<std::mutex> switch_lock(switch_mutex_);
             buff_switch();
-            if (AvailableSizeWD() == 0) return BUFFER_WD_IS_FILLED;
+            if (available_size_wd() == 0) return BUFFER_WD_IS_FILLED;
         } else {
             return BUFFER_WD_IS_FILLED;
         }
@@ -85,7 +90,7 @@ template <BufferCompatible _DT>
 
 // Извлечение элемента из буфера чтения с RVO
 template <BufferCompatible _DT>
-[[nodiscard]] _DT DoubleBuffer<_DT>::Pull() {
+[[nodiscard]] _DT double_buffer<_DT>::pull() {
     /**
      * Условие пустоты [r]:
      *  Указатель находится в начале (пуст)
@@ -93,10 +98,10 @@ template <BufferCompatible _DT>
      */
     std::lock_guard<std::mutex> lock(read_mutex_);
     
-    if (AvailableSizeRD() == 0) {
+    if (available_size_rd() == 0) {
         std::lock_guard<std::mutex> switch_lock(switch_mutex_);
         buff_switch();
-        if (AvailableSizeRD() == 0) return _DT{};
+        if (available_size_rd() == 0) return _DT{};
     }
 
     const size_t rd_idx = idx_rd_.load(std::memory_order_relaxed);
@@ -107,7 +112,7 @@ template <BufferCompatible _DT>
 
 // Прямое чтение данных (ZeroCopy)
 template <BufferCompatible _DT>
-[[nodiscard]] int8_t DoubleBuffer<_DT>::DirectPull(_DT* dest, size_t size, bool copy) {
+[[nodiscard]] int8_t double_buffer<_DT>::direct_pull(_DT* dest, size_t size, bool copy) {
     /**
      * DMA Implementation
      * Используется для быстрого копирования блоков данных
@@ -116,11 +121,11 @@ template <BufferCompatible _DT>
     
     std::lock_guard<std::mutex> lock(read_mutex_);
     
-    size_t available = AvailableSizeRD();
+    size_t available = available_size_rd();
     if (available == 0) {
         std::lock_guard<std::mutex> switch_lock(switch_mutex_);
         buff_switch();
-        available = AvailableSizeRD();
+        available = available_size_rd();
         if (available == 0) return BUFFER_RD_IS_EMPTY;
     }
     
@@ -143,7 +148,7 @@ template <BufferCompatible _DT>
 
 // Прямая запись данных (ZeroCopy)
 template <BufferCompatible _DT>
-[[nodiscard]] int8_t DoubleBuffer<_DT>::DirectPush(_DT* src, size_t size) {
+[[nodiscard]] int8_t double_buffer<_DT>::direct_push(_DT* src, size_t size) {
     /**
      * DMA Implementation
      * Оптимизированное копирование для больших блоков
@@ -152,18 +157,18 @@ template <BufferCompatible _DT>
     
     std::lock_guard<std::mutex> lock(write_mutex_);
     
-    if (AvailableSizeWD() == 0) {
+    if (available_size_wd() == 0) {
         const size_t rd_idx = idx_rd_.load(std::memory_order_acquire);
         if (rd_idx == 0) {
             std::lock_guard<std::mutex> switch_lock(switch_mutex_);
             buff_switch();
-            if (AvailableSizeWD() == 0) return BUFFER_WD_IS_FILLED;
+            if (available_size_wd() == 0) return BUFFER_WD_IS_FILLED;
         } else {
             return BUFFER_WD_IS_FILLED;
         }
     }
     
-    if (AvailableSizeWD() < size) return INSUFFICIENT_SPACE;
+    if (available_size_wd() < size) return INSUFFICIENT_SPACE;
     
     const size_t wd_idx = idx_wd_.load(std::memory_order_relaxed);
     
@@ -179,7 +184,7 @@ template <BufferCompatible _DT>
 
 // Расчет доступного места для записи
 template <BufferCompatible _DT>
-size_t DoubleBuffer<_DT>::AvailableSizeWD() {
+size_t double_buffer<_DT>::available_size_wd() {
     /**
      * [_,_,_,(_ptr_wd),e,e,|(buff_center_)]
      * Заполнено 3 ячейки, следующая запись на 4ой
@@ -192,7 +197,7 @@ size_t DoubleBuffer<_DT>::AvailableSizeWD() {
 
 // Расчет доступных данных для чтения
 template <BufferCompatible _DT>
-size_t DoubleBuffer<_DT>::AvailableSizeRD() {
+size_t double_buffer<_DT>::available_size_rd() {
     /**
      * Условие пустоты [r]:
      *  Указатель находится в начале (пуст)
@@ -206,11 +211,11 @@ size_t DoubleBuffer<_DT>::AvailableSizeRD() {
 
 // Соотношение свободного/занятого места
 template <BufferCompatible _DT>
-float DoubleBuffer<_DT>::RatioBetween() {
+float double_buffer<_DT>::ratio_between() {
     /**
      * Соотношение RD/WD используется для балансировки
      * производительности чтения/записи
      */
-    const size_t wd_size = AvailableSizeWD();
-    return wd_size ? static_cast<float>(AvailableSizeRD()) / wd_size : 0.0f;
+    const size_t wd_size = available_size_wd();
+    return wd_size ? static_cast<float>(available_size_rd()) / wd_size : 0.0f;
 }

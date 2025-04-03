@@ -28,7 +28,7 @@ endif()
 
 # Библиотека буфера
 add_library(buffer STATIC
-    src/buffer/DoubleBuffer.cpp # Файл с явными инстанциациями
+    src/buffer/double_buffer.cpp # Файл с явными инстанциациями
 )
 
 # Исполняемый файл

@@ -1,6 +1,6 @@
-#include "buffer/DoubleBuffer.hpp"
+#include "buffer/double_buffer.hpp"
 
-namespace DoubleBufferCases { 
+namespace double_bufferCases { 
     void TestSwitch() { 
         
     }

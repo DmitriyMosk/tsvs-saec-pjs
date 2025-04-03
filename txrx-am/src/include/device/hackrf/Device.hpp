@@ -4,13 +4,13 @@
 #include <thread>
 
 namespace device { 
-    enum MODE { 
-        TX,
-        RX 
-    };
-
     class hackrf { 
         public:
+            enum MODE { 
+                TX,
+                RX 
+            };
+            
             explicit hackrf(); 
             ~hackrf(); 
 
