@@ -1,6 +1,7 @@
 #pragma once
 
 #include "hackrf.h" 
+#include <thread>
 
 namespace device { 
     enum MODE { 
@@ -13,8 +14,16 @@ namespace device {
             explicit hackrf(); 
             ~hackrf(); 
 
-            static hackrf* make(const char* serialPortID, enum MODE=RX);
+            static hackrf* Make(const char* serialPortID, enum MODE=RX);
             
+            /**
+             * 
+             */
+            bool IsConnected(); 
+
+            /**
+             * 
+             */
             MODE GetDirection(); 
 
             void PrintDevInfo(); 
@@ -48,14 +57,36 @@ namespace device {
             bool           m_rstream_tx;
     };
 
+    /**
+     * 
+     */
+    class streamer { 
+        public: 
+            explicit streamer(); 
+            ~streamer(); 
+
+
+    }; 
+    /**
+     * 
+     */
     class tx_streamer {
-        private: 
-            //tx_buff
+        public: 
+            void IBuff(void* buff, size_t buff_len);
+
+        private:
+            std::thread tx_t; 
     };
 
+    /**
+     * 
+     */
     class rx_streamer {
+        public: 
+            void OBuff(void* buff, size_t buff_len); 
+
         private: 
-            //rx_buff
+            std::thread rx_t; 
     };
 };
 

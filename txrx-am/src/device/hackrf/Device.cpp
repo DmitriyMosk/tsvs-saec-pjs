@@ -13,8 +13,6 @@ hackrf::~hackrf() {
             std::cerr << "hackrf_close() != HACKRF_SUCCESS\n"; 
         } 
     }
-
-    
 }
 
 hackrf* hackrf::make(const char* serialPortID, enum device::MODE mode) { 
@@ -36,7 +34,7 @@ hackrf* hackrf::make(const char* serialPortID, enum device::MODE mode) {
         dev->m_dev = nullptr;
         return nullptr;
     }
-
+    
     dev->m_dev_direction = mode; 
 
     /**
@@ -49,6 +47,7 @@ hackrf* hackrf::make(const char* serialPortID, enum device::MODE mode) {
 
 void hackrf::PrintDevInfo() { 
     uint8_t board_id; 
+
     if (hackrf_board_id_read(m_dev, &board_id) != HACKRF_SUCCESS) { 
 
     }
