@@ -30,7 +30,19 @@ adc_bit_depth               = 16
 Генерит (components) кол-во гармоник
 """
 def signal_generate(samples: int, components: int, components_freq_step=None): 
-    t = np.arange()
+    t = np.arange(0, signal_tau, 1/fs)
+
+    # стартовая частота
+    freq    = 5
+    signal  = np.array()
+
+    for i in range(0, signal_components): 
+        freq += components_freq_step or 0;
+    
+
+
+    return t
+
 
 def signal_noise(snr: int): 
     print("gg") 
