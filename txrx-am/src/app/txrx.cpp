@@ -1,5 +1,25 @@
 #include <iostream> 
 
+#define	THREAD_MUTEX_TEST
+
+#ifdef THREAD_MUTEX_TEST
+	#include <mutex>
+	#include <thread> 
+
+	std::mutex m1;
+	std::mutex m2;
+
+	
+	size_t 	arr1_len = 10000;
+	size_t  idx_w    = 0; 
+	size_t  idx_r	 = arr1_len / 2; 
+	int* 	arr1 	 = new int[arr1_len];
+	
+
+	void thread_func_1();
+	void thread_func_2();
+#endif 
+
 /*** 
  * Hardware definitions
  */
@@ -20,9 +40,9 @@ void signal_handler_callback(int signal) {
 
 int main() { 
 	// startup
-    signal(SIGINT, &signal_handler_callback);
-	signal(SIGILL, &signal_handler_callback);
-	signal(SIGFPE, &signal_handler_callback);
+    signal(SIGINT, 	&signal_handler_callback);
+	signal(SIGILL, 	&signal_handler_callback);
+	signal(SIGFPE, 	&signal_handler_callback);
 	signal(SIGSEGV, &signal_handler_callback);
 	signal(SIGTERM, &signal_handler_callback);
 	signal(SIGABRT, &signal_handler_callback);
@@ -50,5 +70,23 @@ int main() {
 	// KeyHandler key_tx; 
 	// KeyHandler key_rx; 
 
+	#ifdef THREAD_MUTEX_TEST
+		std::thread t1(thread_func_1);
+	    std::thread t2(thread_func_2);
+
+		t1.join();
+		t2.join();
+	#endif 
+
     return EXIT_SUCCESS;
 }
+
+#ifdef THREAD_MUTEX_TEST
+	void thread_func_1() {
+		
+	}
+
+	void thread_func_2() {
+
+	}
+#endif

@@ -14,7 +14,7 @@ namespace device {
             explicit hackrf(); 
             ~hackrf(); 
 
-            static hackrf* Make(const char* serialPortID, enum MODE=RX);
+            static hackrf* make(const char* serialPortID, enum MODE=RX);
             
             /**
              * 
@@ -64,9 +64,8 @@ namespace device {
         public: 
             explicit streamer(); 
             ~streamer(); 
-
-
     }; 
+    
     /**
      * 
      */
