@@ -1,5 +1,8 @@
 import numpy as np 
 import matplotlib.pyplot as plt
+import random 
+
+plt.style.use('seaborn-v0_8-ticks')
 
 ###
 #   Params
@@ -22,6 +25,7 @@ signal_snr                  = 2
 # ADC bit depth [bits] 
 adc_bit_depth               = 16   
 
+
 ###
 #   End Params
 ###
@@ -32,16 +36,22 @@ adc_bit_depth               = 16
 def signal_generate(samples: int, components: int, components_freq_step=None): 
     t = np.arange(0, signal_tau, 1/fs)
 
+    data = dict()
+
     # стартовая частота
-    freq    = 5
-    signal  = np.array()
+    freq    = 5 + random.random() * 20
+    signal  = 0
 
-    for i in range(0, signal_components): 
+    for i in range(0, components): 
         freq += components_freq_step or 0;
-    
 
+        component = np.sin(2*np.pi*t*freq) + np.cos(2*np.pi*t*freq)
+        signal += component
 
-    return t
+    data["t"]       = t
+    data["signal"]  = signal
+
+    return data
 
 
 def signal_noise(snr: int): 
@@ -61,14 +71,18 @@ def plot_max_adc_bit_depth():
     print(adc_bit_depth);
 
 def plot_sequence(x: np.array, y: np.array):
-    print("plot")
+    plt.figure(figsize=(12, 8))
+    plt.plot(x, y)
+
+def plot_fft():
+    print('ggwp')
 
 ###
 #   Signal Generation
 ###
 
-time, signal = signal_generate(fs * signal_tau, signal_components, signal_components_freq_step)
-plot_sequence(x = time, y = signal);
+signal = signal_generate(fs * signal_tau, signal_components, signal_components_freq_step)
+plot_sequence(x = signal["t"], y = signal["signal"]);
 
 ###
 #  Test 1
@@ -76,5 +90,21 @@ plot_sequence(x = time, y = signal);
 #  В данном тесте будут выявлены недостатки обычного умножения сигнала
 ###
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+plt.show()
 
     
